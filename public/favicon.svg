@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" role="img" aria-label="AI Resume Analyzer">
+  <rect width="32" height="32" rx="8" fill="#4f46e5"/>
+  <rect x="8" y="7" width="13" height="18" rx="1.75" fill="#ffffff"/>
+  <rect x="10.5" y="10.5" width="8" height="1.6" rx="0.8" fill="#4f46e5"/>
+  <rect x="10.5" y="14.25" width="8" height="1.4" rx="0.7" fill="#a5b4fc"/>
+  <rect x="10.5" y="17.5" width="5.5" height="1.4" rx="0.7" fill="#a5b4fc"/>
+  <path fill="#eef2ff" d="M23.5 9.2 24.7 12l2.8 1.2-2.8 1.2-1.2 2.8-1.2-2.8-2.8-1.2 2.8-1.2z"/>
+</svg>
