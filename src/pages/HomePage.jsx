@@ -1,12 +1,20 @@
-import PagePlaceholder from '../components/common/PagePlaceholder.jsx'
-import { PAGE_PLACEHOLDERS } from '../data/appConfig.js'
+import BenefitsSection from '../components/home/BenefitsSection.jsx'
+import FeaturesSection from '../components/home/FeaturesSection.jsx'
+import FinalCTA from '../components/home/FinalCTA.jsx'
+import HeroSection from '../components/home/HeroSection.jsx'
+import HowItWorks from '../components/home/HowItWorks.jsx'
+import ValueSection from '../components/home/ValueSection.jsx'
 
 function HomePage() {
   return (
-    <PagePlaceholder
-      title={PAGE_PLACEHOLDERS.home.title}
-      description={PAGE_PLACEHOLDERS.home.description}
-    />
+    <div>
+      <HeroSection />
+      <ValueSection />
+      <FeaturesSection />
+      <HowItWorks />
+      <BenefitsSection />
+      <FinalCTA />
+    </div>
   )
 }
 
