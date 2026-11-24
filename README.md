@@ -1,29 +1,34 @@
 # AI Resume Analyzer
 
-A SaaS-style web application where users can upload a resume, enter a target job description, and review a detailed analysis dashboard.
-
-**Current module: Day 1 — Project foundation.** Routing, layout, and Navbar are in place. Landing page, upload, and dashboard UI are not built yet.
+Upload a resume (PDF or DOCX), enter a target job title and description, and get an ATS-style analysis dashboard.
 
 ## Stack
 
-- React + Vite (JavaScript)
-- Tailwind CSS v4 (`@tailwindcss/vite`)
-- React Router
-- Lucide React (navbar icons only)
+- Frontend: React + Vite, Tailwind CSS v4, React Router, Recharts
+- Backend: Express, Multer, Mammoth (DOCX), unpdf (PDF), Groq API (LLM)
 
 ## Setup
 
 ```bash
-cd C:\Users\Senthil\Projects\ai-resume-analyzer
-git init
 npm install
-npm run dev
+cp .env.example .env     # then put your real GROQ_API_KEY in .env
 ```
 
-## Scripts
+## Run (two terminals)
 
-| Command | Description |
-| --- | --- |
-| `npm run dev` | Local development server |
-| `npm run build` | Production build |
-| `npm run preview` | Preview the production build |
+```bash
+npm run server   # backend  -> http://localhost:3001  (check /api/test)
+npm run dev      # frontend -> http://localhost:5173
+```
+
+## Notes
+
+- Scanned/image-only PDFs have no text layer and are rejected with a clear message; use a text-based PDF or DOCX.
+- Never commit `.env`. If a key was ever shared, rotate it at console.groq.com.
+
+## Deploy (free, Render)
+
+Build command: `npm install --include=dev && npm run build`
+Start command: `npm start`
+Environment variables (set in the Render dashboard, never in Git): `GROQ_API_KEY`, `GROQ_MODEL`.
+The Express server serves the built React app, so one service hosts everything.

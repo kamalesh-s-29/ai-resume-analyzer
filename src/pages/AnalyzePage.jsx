@@ -1,14 +1,60 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
+import { useLocation, useNavigate } from 'react-router-dom'
 import AnalysisForm from '../components/analyze/AnalysisForm.jsx'
-import { MAX_FILE_SIZE_BYTES, simulateAnalysisRequest, validateAnalysisForm } from '../services/analysisService.js'
+import { MAX_FILE_SIZE_BYTES, analyzeResume, validateAnalysisForm } from '../services/analysisService.js'
+import {
+  getSession,
+  createSession,
+  storeResumeFile,
+  getResumeFile,
+  isIndexedDBAvailable,
+} from '../services/analysisSessionService.js'
+import { addHistoryRecord, createHistoryRecord } from '../services/analysisHistoryService.js'
+import { ROUTES } from '../data/appConfig.js'
 
 function AnalyzePage() {
+  const navigate = useNavigate()
+  const location = useLocation()
   const [selectedFile, setSelectedFile] = useState(null)
   const [jobTitle, setJobTitle] = useState('')
   const [jobDescription, setJobDescription] = useState('')
   const [errors, setErrors] = useState({ resume: '', jobTitle: '', jobDescription: '' })
   const [isAnalyzing, setIsAnalyzing] = useState(false)
   const [successMessage, setSuccessMessage] = useState('')
+  const [statusType, setStatusType] = useState('success')
+
+  // The form starts empty. Previous values are restored ONLY when the user
+  // arrives via the dashboard's "Edit analysis" button (which sets state.prefill).
+  useEffect(() => {
+    if (!location.state?.prefill) return
+
+    const existingSession = getSession()
+    if (existingSession) {
+      setJobTitle(existingSession.jobTitle || '')
+      setJobDescription(existingSession.jobDescription || '')
+
+      if (isIndexedDBAvailable()) {
+        getResumeFile()
+          .then((resumeBlob) => {
+            if (resumeBlob && existingSession.resume) {
+              setSelectedFile(
+                new File([resumeBlob], existingSession.resume.name, {
+                  type: existingSession.resume.type,
+                  lastModified: existingSession.resume.lastModified,
+                }),
+              )
+            }
+          })
+          .catch((error) => {
+            console.error('Failed to restore resume file from IndexedDB:', error)
+          })
+      }
+    }
+
+    // Clear the flag so a page refresh gives a blank form again.
+    navigate(location.pathname, { replace: true, state: null })
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
 
   const validationSummary = useMemo(
     () => ({
@@ -44,6 +90,7 @@ function AnalyzePage() {
   const handleSubmit = async (event) => {
     event.preventDefault()
     setSuccessMessage('')
+    setStatusType('success')
 
     const { errors: nextErrors, isValid } = validateAnalysisForm({
       selectedFile,
@@ -60,8 +107,34 @@ function AnalyzePage() {
     setIsAnalyzing(true)
 
     try {
-      await simulateAnalysisRequest()
-      setSuccessMessage('Resume ready for analysis.')
+      // Save the session before starting analysis
+      const analysis = await analyzeResume({ selectedFile, jobTitle, jobDescription })
+      const session = createSession({ jobTitle, jobDescription, resumeFile: selectedFile, analysis })
+      addHistoryRecord(
+        createHistoryRecord({
+          resumeName: selectedFile.name,
+          targetJobTitle: jobTitle.trim(),
+          jobDescription: jobDescription.trim(),
+          createdAt: session.createdAt,
+          analysis,
+        }),
+      )
+      // Store resume file in IndexedDB if available
+      if (isIndexedDBAvailable()) {
+        try {
+          await storeResumeFile(selectedFile)
+        } catch (error) {
+          console.error('Failed to store resume in IndexedDB:', error)
+          // Continue without IndexedDB storage
+        }
+      }
+
+      // Navigate to dashboard after successful analysis
+      navigate(ROUTES.dashboard)
+    } catch (error) {
+      console.error('Analysis failed:', error)
+      setStatusType('error')
+      setSuccessMessage(error.message || 'Analysis failed. Please try again.')
     } finally {
       setIsAnalyzing(false)
     }
@@ -86,6 +159,7 @@ function AnalyzePage() {
               errors={errors}
               isAnalyzing={isAnalyzing}
               successMessage={successMessage}
+              statusType={statusType}
               onFileSelect={handleResumeSelect}
               onClearResume={handleClearResume}
               onJobTitleChange={(nextValue) => {

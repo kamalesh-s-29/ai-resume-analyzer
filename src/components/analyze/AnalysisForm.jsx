@@ -11,6 +11,7 @@ function AnalysisForm({
   errors,
   isAnalyzing,
   successMessage,
+  statusType = 'success',
   onFileSelect,
   onClearResume,
   onJobTitleChange,
@@ -34,7 +35,7 @@ function AnalysisForm({
         error={errors.jobDescription}
       />
 
-      <AnalysisStatus message={successMessage} type="success" />
+      <AnalysisStatus message={successMessage} type={statusType} />
 
       <button
         type="submit"
